@@ -122,9 +122,9 @@ const updateUI = function (account) {
 btnLogin.addEventListener('click', function (e) {
     e.preventDefault();
 
-    currentAccount = accounts.find(ac => ac.username === inputLoginUsername.value);
+    currentAccount = accounts.find(ac => ac.username === inputLoginUsername.value.trim());
 
-    if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    if (currentAccount?.pin === Number(inputLoginPin.value.trim())) {
         // Display UI and welcome message
         labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ')[0]}`;
         containerApp.style.opacity = 100;
@@ -159,4 +159,19 @@ btnTransfer.addEventListener('click', function (e) {
         receiverAcc.movements.push(amount);
         updateUI(currentAccount);
     }
+});
+
+btnClose.addEventListener('click', function (e) {
+    e.preventDefault();
+
+    if (currentAccount.username === inputCloseUsername.value && currentAccount.pin === Number(inputClosePin.value)) {
+        accounts.splice(
+            accounts.findIndex(acc => acc.username === currentAccount.username),
+            1
+        );
+
+        // Hide UI
+        containerApp.style.opacity = 0;
+    }
+    inputCloseUsername.value = inputClosePin.value = '';
 });
