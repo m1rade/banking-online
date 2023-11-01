@@ -79,21 +79,21 @@ const displayMovements = function (movements) {
     });
 };
 
-const calcDisplayBalance = function (movements) {
-    const balance = movements.reduce((acc, mov) => acc + mov, 0);
-    labelBalance.textContent = `${balance}€`;
+const calcDisplayBalance = function (account) {
+    account.balance = account.movements.reduce((acc, mov) => acc + mov, 0);
+    labelBalance.textContent = `${account.balance}€`;
 };
 
-const calcDisplaySummary = function (movements, interestRate) {
-    const incomes = movements.filter(mov => mov > 0).reduce((acc, mov) => acc + mov, 0);
+const calcDisplaySummary = function (account) {
+    const incomes = account.movements.filter(mov => mov > 0).reduce((acc, mov) => acc + mov, 0);
     labelSumIn.textContent = `${incomes}€`;
 
-    const outcomes = movements.filter(mov => mov < 0).reduce((acc, mov) => acc + mov, 0);
+    const outcomes = account.movements.filter(mov => mov < 0).reduce((acc, mov) => acc + mov, 0);
     labelSumOut.textContent = `${Math.abs(outcomes)}€`;
 
-    const interest = movements
+    const interest = account.movements
         .filter(mov => mov > 0)
-        .map(deposit => (deposit * interestRate) / 100)
+        .map(deposit => (deposit * account.interestRate) / 100)
         .filter(int => int >= 1)
         .reduce((acc, int) => acc + int, 0);
     labelSumInterest.textContent = `${interest}€`;
@@ -109,6 +109,14 @@ const createUsernames = function (accounts) {
     });
 };
 createUsernames(accounts);
+
+const updateUI = function (account) {
+    displayMovements(account.movements);
+
+    calcDisplayBalance(account);
+
+    calcDisplaySummary(account);
+};
 
 // Event handlers
 btnLogin.addEventListener('click', function (e) {
@@ -126,10 +134,29 @@ btnLogin.addEventListener('click', function (e) {
         inputLoginPin.blur();
 
         // Display all necessary information
-        displayMovements(currentAccount.movements);
+        updateUI(currentAccount);
+    }
+});
 
-        calcDisplayBalance(currentAccount.movements);
+btnTransfer.addEventListener('click', function (e) {
+    e.preventDefault();
 
-        calcDisplaySummary(currentAccount.movements, currentAccount.interestRate);
+    const amount = Number(inputTransferAmount.value);
+    const receiverAcc = accounts.find(acc => acc.username === inputTransferTo.value);
+
+    // Clear inputs
+    inputTransferTo.value = inputTransferAmount.value = '';
+
+    // Do all the validation before transfer
+    if (
+        amount > 0 &&
+        receiverAcc &&
+        currentAccount.balance >= amount &&
+        receiverAcc.username !== currentAccount.username
+    ) {
+        // do the transfer
+        currentAccount.movements.push(-amount);
+        receiverAcc.movements.push(amount);
+        updateUI(currentAccount);
     }
 });
