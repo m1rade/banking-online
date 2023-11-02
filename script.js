@@ -61,7 +61,7 @@ const account4 = {
 
 const accounts = [account1, account2, account3, account4];
 
-let currentAccount;
+let currentAccount, timer;
 let sorted = false;
 
 // Elements
@@ -169,17 +169,39 @@ const updateUI = function (account) {
     calcDisplaySummary(account);
 };
 
+const logOutUser = function () {
+    currentAccount = '';
+    labelWelcome.textContent = 'Log in to get started';
+    containerApp.style.opacity = 0;
+};
+
+const startLogoutTimer = function () {
+    const ticker = function () {
+        // In each call, print the remaining time to UI
+        const min = String(Math.trunc(time / 60)).padStart(2, 0);
+        const sec = String(time % 60).padStart(2, 0);
+
+        labelTimer.textContent = `${min}:${sec}`;
+
+        // When 0 seconds, stop timer and log out user
+        if (time === 0) {
+            clearInterval(timer);
+            logOutUser();
+        }
+
+        time--;
+    };
+
+    // Set time to 5 minutes
+    let time = 300;
+    // Call the timer every second
+    ticker();
+    const timer = setInterval(ticker, 1000);
+
+    return timer;
+};
+
 // Event handlers
-
-const now = new Date();
-labelDate.textContent = new Intl.DateTimeFormat(currentAccount.locale, {
-    hour: 'numeric',
-    minute: 'numeric',
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric',
-}).format(now);
-
 btnLogin.addEventListener('click', function (e) {
     e.preventDefault();
 
@@ -190,9 +212,23 @@ btnLogin.addEventListener('click', function (e) {
         labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ')[0]}`;
         containerApp.style.opacity = 100;
 
+        // Setup current date and time
+        const now = new Date();
+        labelDate.textContent = new Intl.DateTimeFormat(currentAccount.locale, {
+            hour: 'numeric',
+            minute: 'numeric',
+            day: 'numeric',
+            month: 'numeric',
+            year: 'numeric',
+        }).format(now);
+
         // Clear input fields
         inputLoginUsername.value = inputLoginPin.value = '';
         inputLoginPin.blur();
+
+        // Timer
+        timer && clearInterval(timer);
+        timer = startLogoutTimer();
 
         // Display all necessary information
         updateUI(currentAccount);
@@ -223,6 +259,10 @@ btnTransfer.addEventListener('click', function (e) {
         receiverAcc.movementsDates.push(new Date().toISOString());
 
         updateUI(currentAccount);
+
+        // Reset timer
+        clearInterval(timer);
+        timer = startLogoutTimer();
     }
 });
 
@@ -234,11 +274,17 @@ btnLoan.addEventListener('click', function (e) {
     // the loan is only granted if there is any deposit
     // that's greater or equal 10 % of the requested amount of loan
     if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
-        currentAccount.movements.push(amount);
-        // Add loan date
-        currentAccount.movementsDates.push(new Date().toISOString());
+        setTimeout(() => {
+            currentAccount.movements.push(amount);
+            // Add loan date
+            currentAccount.movementsDates.push(new Date().toISOString());
 
-        updateUI(currentAccount);
+            updateUI(currentAccount);
+
+            // Reset timer
+            clearInterval(timer);
+            timer = startLogoutTimer();
+        }, 1500);
     }
 
     inputLoanAmount.value = '';
@@ -254,8 +300,8 @@ btnClose.addEventListener('click', function (e) {
         );
 
         // Hide UI
-        containerApp.style.opacity = 0;
-        labelWelcome.textContent = 'Log in to get started';
+        clearInterval(timer);
+        logOutUser();
     }
     inputCloseUsername.value = inputClosePin.value = '';
 });
