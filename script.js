@@ -15,11 +15,11 @@ const account1 = {
         '2022-11-18T21:31:17.178Z',
         '2022-12-23T07:42:02.383Z',
         '2023-01-28T09:15:04.904Z',
-        '2023-04-01T10:17:24.185Z',
-        '2023-05-08T14:11:59.604Z',
-        '2023-05-27T17:01:17.194Z',
-        '2023-07-11T23:36:17.929Z',
-        '2023-07-12T10:51:36.790Z',
+        '2023-10-29T13:17:24.185Z',
+        '2023-10-29T14:11:59.604Z',
+        '2023-10-30T17:01:17.194Z',
+        '2023-10-31T23:36:17.929Z',
+        '2023-11-01T10:51:36.790Z',
     ],
     currency: 'EUR',
     locale: 'pt-PT', // de-DE
@@ -32,14 +32,14 @@ const account2 = {
     pin: 2222,
 
     movementsDates: [
-        '2022-11-01T13:15:33.035Z',
-        '2022-11-30T09:48:16.867Z',
-        '2022-12-25T06:04:23.907Z',
-        '2023-01-25T14:18:46.235Z',
-        '2023-02-05T16:33:06.386Z',
-        '2023-04-10T14:43:26.374Z',
-        '2023-06-25T18:49:59.371Z',
-        '2023-07-26T12:01:20.894Z',
+        '2022-08-01T13:15:33.035Z',
+        '2022-09-30T09:48:16.867Z',
+        '2022-09-25T06:04:23.907Z',
+        '2023-09-25T14:18:46.235Z',
+        '2023-10-05T16:33:06.386Z',
+        '2023-10-10T14:43:26.374Z',
+        '2023-10-31T11:49:59.371Z',
+        '2023-11-01T12:01:20.894Z',
     ],
     currency: 'USD',
     locale: 'en-US',
@@ -90,8 +90,21 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-const now = new Date();
-labelDate.textContent = now.toLocaleString();
+const calcDaysPassed = (date1, date2) => Math.round(Math.abs(date2 - date1) / (1000 * 60 * 60 * 24));
+
+const formatCurrency = function (value, locale, currency) {
+    return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(value);
+};
+
+const formatMovementsDate = function (date, locale) {
+    const daysPassed = calcDaysPassed(new Date(), date);
+
+    if (daysPassed === 0) return 'Today';
+    if (daysPassed === 1) return 'Yesterday';
+    if (daysPassed <= 3) return `${daysPassed} days ago`;
+
+    return new Intl.DateTimeFormat(locale).format(date);
+};
 
 const displayMovements = function (account, sort = false) {
     containerMovements.innerHTML = '';
@@ -101,13 +114,16 @@ const displayMovements = function (account, sort = false) {
     sortedMovements.forEach((m, i) => {
         const type = m > 0 ? 'deposit' : 'withdrawal';
 
-        const displayDate = new Date(account.movementsDates[i]);
+        const date = new Date(account.movementsDates[i]);
+        const displayDate = formatMovementsDate(date, account.locale);
+
+        const formattedMov = formatCurrency(m, account.locale, account.currency);
 
         const html = `
       <div class="movements__row">
         <div class="movements__type movements__type--${type}">${i + 1} ${type}</div>
-        <div class="movements__date">${displayDate.toLocaleDateString()}</div>
-        <div class="movements__value">${m.toFixed(2)}€</div>
+        <div class="movements__date">${displayDate}</div>
+        <div class="movements__value">${formattedMov}</div>
       </div>`;
 
         containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -116,22 +132,22 @@ const displayMovements = function (account, sort = false) {
 
 const calcDisplayBalance = function (account) {
     account.balance = account.movements.reduce((acc, mov) => acc + mov, 0);
-    labelBalance.textContent = `${account.balance.toFixed(2)}€`;
+    labelBalance.textContent = `${formatCurrency(account.balance, account.locale, account.currency)}`;
 };
 
 const calcDisplaySummary = function (account) {
     const incomes = account.movements.filter(mov => mov > 0).reduce((acc, mov) => acc + mov, 0);
-    labelSumIn.textContent = `${incomes.toFixed(2)}€`;
+    labelSumIn.textContent = `${formatCurrency(incomes, account.locale, account.currency)}`;
 
     const outcomes = account.movements.filter(mov => mov < 0).reduce((acc, mov) => acc + mov, 0);
-    labelSumOut.textContent = `${Math.abs(outcomes.toFixed(2))}€`;
+    labelSumOut.textContent = `${formatCurrency(Math.abs(outcomes), account.locale, account.currency)}`;
 
     const interest = account.movements
         .filter(mov => mov > 0)
         .map(deposit => (deposit * account.interestRate) / 100)
         .filter(int => int >= 1)
         .reduce((acc, int) => acc + int, 0);
-    labelSumInterest.textContent = `${interest.toFixed(2)}€`;
+    labelSumInterest.textContent = `${formatCurrency(interest, account.locale, account.currency)}`;
 };
 
 const createUsernames = function (accounts) {
@@ -155,10 +171,14 @@ const updateUI = function (account) {
 
 // Event handlers
 
-// Fake logged In
-currentAccount = account1;
-updateUI(currentAccount);
-containerApp.style.opacity = 100;
+const now = new Date();
+labelDate.textContent = new Intl.DateTimeFormat(currentAccount.locale, {
+    hour: 'numeric',
+    minute: 'numeric',
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+}).format(now);
 
 btnLogin.addEventListener('click', function (e) {
     e.preventDefault();
