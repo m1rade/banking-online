@@ -61,8 +61,10 @@ const account4 = {
 
 const accounts = [account1, account2, account3, account4];
 
-let currentAccount, timer;
+let currentAccount, timer, popupTimeoutId;
 let sorted = false;
+const POPUP_TIMEOUT_CLOSE = 300;
+const POPUP_TIMEOUT_AUTO_HIDE = 5000;
 
 // Elements
 const labelWelcome = document.querySelector('.welcome');
@@ -75,6 +77,8 @@ const labelTimer = document.querySelector('.timer');
 
 const containerApp = document.querySelector('.app');
 const containerMovements = document.querySelector('.movements');
+const containerPopup = document.querySelector('.popup_notification');
+let popupWrapper;
 
 const btnLogin = document.querySelector('.login__btn');
 const btnTransfer = document.querySelector('.form__btn--transfer');
@@ -201,6 +205,60 @@ const startLogoutTimer = function () {
     return timer;
 };
 
+const showPopup = async function (message, type = 'success') {
+    if (popupWrapper) {
+        await closePopup();
+    }
+
+    clearTimeout(popupTimeoutId);
+
+    let messageTypeClass;
+    switch (type) {
+        case 'success':
+            messageTypeClass = 'popup__message--info';
+            break;
+        case 'error':
+            messageTypeClass = 'popup__message--error';
+            break;
+        default:
+            break;
+    }
+    const popup = `
+    <div class="popup__message__wrapper">
+      <aside class="popup__message ${messageTypeClass}">
+          <div class="popup__message__body">
+            <p>${message}</p>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"
+            class="popup__icon__close">
+                <path d="M12 4L4 12M4 4L12 12" stroke="#777" stroke-width="1.33333" stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+        </div>
+      </aside>
+    </div>  `;
+    containerPopup.insertAdjacentHTML('afterbegin', popup);
+    popupWrapper = containerPopup.querySelectorAll('.popup__message__wrapper');
+
+    // listen for close popup icon click
+    popupWrapper.forEach((el) => {
+        const btnPopupClose = containerPopup.querySelector('.popup__icon__close');
+        btnPopupClose.addEventListener('click', closePopup);
+    });
+
+    popupTimeoutId = setTimeout(closePopup, POPUP_TIMEOUT_AUTO_HIDE);
+}
+
+const closePopup = async function() {
+    if (!popupWrapper) return;
+
+    popupWrapper.forEach((el) => {
+        el.classList.add('popup__message__wrapper--close');
+    });
+    await new Promise(res => setTimeout(() => res(), POPUP_TIMEOUT_CLOSE));
+    containerPopup.innerHTML = '';
+    popupWrapper = null;
+}
+
 // Event handlers
 btnLogin.addEventListener('click', function (e) {
     e.preventDefault();
@@ -232,6 +290,8 @@ btnLogin.addEventListener('click', function (e) {
 
         // Display all necessary information
         updateUI(currentAccount);
+    } else {
+        showPopup('Incorrect user or pin', 'error');
     }
 });
 
@@ -260,9 +320,13 @@ btnTransfer.addEventListener('click', function (e) {
 
         updateUI(currentAccount);
 
+        showPopup(`Money was successfully transferred to ${receiverAcc.owner}`);
+
         // Reset timer
         clearInterval(timer);
         timer = startLogoutTimer();
+    } else {
+        showPopup('Not sufficient funds or wrong username', 'error');
     }
 });
 
@@ -281,10 +345,14 @@ btnLoan.addEventListener('click', function (e) {
 
             updateUI(currentAccount);
 
+            showPopup('Requested successfully');
+
             // Reset timer
             clearInterval(timer);
             timer = startLogoutTimer();
         }, 1500);
+    } else {
+        showPopup('Cannot request loan', 'error');
     }
 
     inputLoanAmount.value = '';
@@ -294,14 +362,18 @@ btnClose.addEventListener('click', function (e) {
     e.preventDefault();
 
     if (currentAccount.username === inputCloseUsername.value && currentAccount.pin === +inputClosePin.value) {
-        accounts.splice(
-            accounts.findIndex(acc => acc.username === currentAccount.username),
-            1
-        );
-
-        // Hide UI
-        clearInterval(timer);
-        logOutUser();
+        if (window.confirm('Please confirm that you want to close your account')) {
+            accounts.splice(
+                accounts.findIndex(acc => acc.username === currentAccount.username),
+                1
+            );
+    
+            // Hide UI
+            clearInterval(timer);
+            logOutUser();
+        }
+    } else {
+        showPopup('Wrong name or pin', 'error');
     }
     inputCloseUsername.value = inputClosePin.value = '';
 });

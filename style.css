@@ -1,8 +1,6 @@
-/*
- * Use this CSS to learn some intersting techniques,
- * in case you're wondering how I built the UI.
- * Have fun! 😁
- */
+:root {
+  --notification-max-height: 350px;
+}
 
 * {
   margin: 0;
@@ -76,9 +74,7 @@ nav {
 }
 
 .login__btn:hover,
-.login__btn:focus,
-.btn--sort:hover,
-.btn--sort:focus {
+.btn--sort:hover {
   outline: none;
   color: #777;
 }
@@ -281,7 +277,6 @@ h2 {
 }
 
 .form__btn:focus {
-  outline: none;
   background-color: rgba(255, 255, 255, 0.8);
 }
 
@@ -294,4 +289,126 @@ h2 {
 
 .timer {
   font-weight: 600;
+}
+
+.popup_notification {
+  position: fixed;
+  z-index: 999;
+  top: 10rem;
+  right: 3rem;
+  font-size: 1.6rem;
+  width: 35rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.popup__message__wrapper {
+  animation: notification 1.2s ease-out forwards;
+  pointer-events: none;
+}
+
+.popup__message__wrapper--close {
+  animation: notification-hide 0.2s ease-out both;
+  animation: notify-msg-hide 0.3s forwards;
+}
+
+.popup__message {
+  border-radius: 1.2rem;
+  padding: 1.2rem;
+  background-color: #fffefe;
+  box-shadow: 0 6px 16px rgba(42, 49, 55, .25);
+
+  pointer-events: auto;
+  animation: notify-msg-show .6s ease-out .2s both;
+}
+
+.popup__message__body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.popup__icon__close {
+  align-self: start;
+  opacity: .5;
+  cursor: pointer;
+  transition: opacity .1s;
+
+  display: inline-block;
+  background: 0 0 no-repeat;
+  border: 0;
+  outline: none;
+  text-decoration: none;
+}
+
+.popup__icon__close:hover {
+  opacity: 1;
+}
+
+.popup__message--error {
+  border-top-left-radius: 0.4rem;
+  border-bottom-left-radius: 0.4rem;
+  border-left: 0.5rem solid #e52a5a;
+  color:#e52a5a;
+}
+
+.popup__message--info {
+  border-top-left-radius: 0.4rem;
+  border-bottom-left-radius: 0.4rem;
+  border-left: 0.5rem solid #39b385;
+  color: #39b385;
+}
+
+@keyframes notification {
+  0% {
+    max-height: 0;
+  }
+
+  100% {
+    max-height: var(--notification-max-height);
+  }
+}
+
+@keyframes notify-msg-show {
+  0% {
+    transform: translateX(150%);
+  }
+
+  25% {
+    transform: translateX(-50px);
+  }
+
+  50% {
+    transform: translateX(20px);
+  }
+
+  90% {
+    transform: translateX(-2px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes notification-hide {
+  0% {
+    max-height: var(--notification-max-height);
+  }
+
+  100% {
+    max-height: 0;
+  }
+}
+
+@keyframes notify-msg-hide {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
