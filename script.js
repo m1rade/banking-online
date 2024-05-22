@@ -61,7 +61,7 @@ const account4 = {
 
 const accounts = [account1, account2, account3, account4];
 
-let currentAccount, timer, popupTimeoutId;
+let currentAccount, timer, popupTimeoutId, loader;
 let sorted = false;
 const POPUP_TIMEOUT_CLOSE = 300;
 const POPUP_TIMEOUT_AUTO_HIDE = 5000;
@@ -93,6 +93,22 @@ const inputTransferAmount = document.querySelector('.form__input--amount');
 const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
+
+const topBarLoader = document.getElementById('topBar');
+
+const activateLoader = function (show) {
+    if (show) {
+        topBarLoader.classList.remove('hidden');
+        const div = document.createElement('div');
+        div.classList.add('topBar__loader');
+        loader = topBarLoader.appendChild(div);
+    } else {
+        setTimeout(() => {
+            topBarLoader.classList.add('hidden');
+            loader.remove();
+        }, 1500);
+    }
+}
 
 const calcDaysPassed = (date1, date2) => Math.round(Math.abs(date2 - date1) / (1000 * 60 * 60 * 24));
 
@@ -175,8 +191,18 @@ const updateUI = function (account) {
 
 const logOutUser = function () {
     currentAccount = '';
+    containerMovements.innerHTML = '';
     labelWelcome.textContent = 'Log in to get started';
     containerApp.style.opacity = 0;
+    labelDate.textContent = '24/01/2037';
+    labelBalance.textContent = labelSumIn.textContent = labelSumOut.textContent = labelSumInterest.textContent = '0000€';
+    inputTransferTo.value =
+        inputTransferAmount.value =
+        inputTransferAmount.value =
+        inputLoanAmount.value =
+        inputCloseUsername.value =
+        inputClosePin.value =
+        '';
 };
 
 const startLogoutTimer = function () {
@@ -262,6 +288,7 @@ const closePopup = async function() {
 // Event handlers
 btnLogin.addEventListener('click', function (e) {
     e.preventDefault();
+    activateLoader(true);
 
     currentAccount = accounts.find(ac => ac.username === inputLoginUsername.value.trim());
 
@@ -293,10 +320,13 @@ btnLogin.addEventListener('click', function (e) {
     } else {
         showPopup('Incorrect user or pin', 'error');
     }
+
+    activateLoader(false);
 });
 
 btnTransfer.addEventListener('click', function (e) {
     e.preventDefault();
+    activateLoader(true);
 
     const amount = +inputTransferAmount.value;
     const receiverAcc = accounts.find(acc => acc.username === inputTransferTo.value);
@@ -311,27 +341,32 @@ btnTransfer.addEventListener('click', function (e) {
         currentAccount.balance >= amount &&
         receiverAcc.username !== currentAccount.username
     ) {
-        // do the transfer
-        currentAccount.movements.push(-amount);
-        receiverAcc.movements.push(amount);
-        // Add transfer date
-        currentAccount.movementsDates.push(new Date().toISOString());
-        receiverAcc.movementsDates.push(new Date().toISOString());
+        setTimeout(() => {
+            // do the transfer
+            currentAccount.movements.push(-amount);
+            receiverAcc.movements.push(amount);
+            // Add transfer date
+            currentAccount.movementsDates.push(new Date().toISOString());
+            receiverAcc.movementsDates.push(new Date().toISOString());
 
-        updateUI(currentAccount);
+            updateUI(currentAccount);
 
-        showPopup(`Money was successfully transferred to ${receiverAcc.owner}`);
+            showPopup(`Money was successfully transferred to ${receiverAcc.owner}`);
 
-        // Reset timer
-        clearInterval(timer);
-        timer = startLogoutTimer();
+            // Reset timer
+            clearInterval(timer);
+            timer = startLogoutTimer();
+        }, 1500);
     } else {
         showPopup('Not sufficient funds or wrong username', 'error');
     }
+
+    activateLoader(false);
 });
 
 btnLoan.addEventListener('click', function (e) {
     e.preventDefault();
+    activateLoader(true);
 
     const amount = Math.floor(inputLoanAmount.value);
 
@@ -356,26 +391,31 @@ btnLoan.addEventListener('click', function (e) {
     }
 
     inputLoanAmount.value = '';
+    activateLoader(false);
 });
 
 btnClose.addEventListener('click', function (e) {
     e.preventDefault();
+    activateLoader(true);
 
     if (currentAccount.username === inputCloseUsername.value && currentAccount.pin === +inputClosePin.value) {
-        if (window.confirm('Please confirm that you want to close your account')) {
-            accounts.splice(
-                accounts.findIndex(acc => acc.username === currentAccount.username),
-                1
-            );
-    
-            // Hide UI
-            clearInterval(timer);
-            logOutUser();
-        }
+        setTimeout(() => {
+            if (window.confirm('Please confirm that you want to close your account')) {
+                accounts.splice(
+                    accounts.findIndex(acc => acc.username === currentAccount.username),
+                    1
+                );
+        
+                // Hide UI
+                clearInterval(timer);
+                logOutUser();
+            }
+        }, 1000);
     } else {
         showPopup('Wrong name or pin', 'error');
     }
     inputCloseUsername.value = inputClosePin.value = '';
+    activateLoader(false);
 });
 
 btnSort.addEventListener('click', function (e) {
