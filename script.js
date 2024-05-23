@@ -2,27 +2,27 @@
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-// BANKIST APP
+// Online banking app
 
 // Data
 const account1 = {
-    owner: 'Jonas Schmedtmann',
+    owner: 'Thomas Müller',
     movements: [200, 455.23, -306.5, 25000, -642.21, -133.9, 79.97, 1300],
     interestRate: 1.2, // %
     pin: 1111,
 
     movementsDates: [
-        '2022-11-18T21:31:17.178Z',
-        '2022-12-23T07:42:02.383Z',
-        '2023-01-28T09:15:04.904Z',
-        '2023-10-29T13:17:24.185Z',
-        '2023-10-29T14:11:59.604Z',
-        '2023-10-30T17:01:17.194Z',
-        '2023-10-31T23:36:17.929Z',
-        '2023-11-01T10:51:36.790Z',
+        '2023-11-18T21:31:17.178Z',
+        '2023-12-23T07:42:02.383Z',
+        '2024-01-28T09:15:04.904Z',
+        '2024-04-29T13:17:24.185Z',
+        '2024-05-20T14:11:59.604Z',
+        '2024-05-21T17:01:17.194Z',
+        '2024-05-22T23:36:17.929Z',
+        '2024-05-23T10:51:36.790Z',
     ],
     currency: 'EUR',
-    locale: 'pt-PT', // de-DE
+    locale: 'de-DE',
 };
 
 const account2 = {
@@ -50,13 +50,34 @@ const account3 = {
     movements: [200, -200, 340, -300, -20, 50, 400, -460],
     interestRate: 0.7,
     pin: 3333,
+    movementsDates: [
+        "2023-10-23T08:42:11.513Z",
+        "2023-11-23T09:52:12.907Z",
+        "2023-12-23T10:22:13.235Z",
+        "2024-01-23T11:12:14.513Z",
+        "2024-02-23T12:13:15.513Z",
+        "2024-03-23T13:34:16.374Z",
+        "2024-04-23T14:19:17.513Z",
+        "2024-05-23T15:36:18.513Z",
+    ],
+    currency: 'GBP',
+    locale: 'en-GB'
 };
 
 const account4 = {
-    owner: 'Sarah Smith',
+    owner: 'Sergey Naumov',
     movements: [430, 1000, 700, 50, 90],
-    interestRate: 1,
+    interestRate: 2.5,
     pin: 4444,
+    movementsDates: [
+        "2024-05-15T08:46:23.385Z", 
+        "2024-05-20T10:00:03.385Z", 
+        "2024-05-20T18:46:53.385Z", 
+        "2024-05-22T19:17:17.385Z", 
+        "2024-05-22T22:30:00.385Z", 
+    ],
+    currency: 'RUB',
+    locale: 'ru-RU',
 };
 
 const accounts = [account1, account2, account3, account4];
@@ -424,18 +445,18 @@ btnSort.addEventListener('click', function (e) {
     
     switch (sorted) {
         case 'desc':
-            btnSort.children[1].classList.remove('fa-plus');
-            btnSort.children[1].classList.add('fa-minus');
+            btnSort.children[1].classList.remove('fa-arrow-down');
+            btnSort.children[1].classList.add('fa-arrow-up');
             sorted = 'asc';
             break;
         case 'asc':
-            btnSort.children[1].classList.remove('fa-minus');
+            btnSort.children[1].classList.remove('fa-arrow-up');
             btnSort.children[1].classList.add('fa-sort');
             sorted = 'default';
             break;
         case 'default':
             btnSort.children[1].classList.remove('fa-sort');
-            btnSort.children[1].classList.add('fa-plus');
+            btnSort.children[1].classList.add('fa-arrow-down');
             sorted = 'desc';
             break;
         default:
