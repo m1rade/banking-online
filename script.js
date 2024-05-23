@@ -62,7 +62,7 @@ const account4 = {
 const accounts = [account1, account2, account3, account4];
 
 let currentAccount, timer, popupTimeoutId, loader;
-let sorted = false;
+let sorted = 'default';
 const POPUP_TIMEOUT_CLOSE = 300;
 const POPUP_TIMEOUT_AUTO_HIDE = 5000;
 
@@ -126,10 +126,11 @@ const formatMovementsDate = function (date, locale) {
     return new Intl.DateTimeFormat(locale).format(date);
 };
 
-const displayMovements = function (account, sort = false) {
+const displayMovements = function (account, sort = 'default') {
     containerMovements.innerHTML = '';
 
-    const sortedMovements = sort ? [...account.movements].sort((a, b) => a - b) : account.movements;
+    // const sortedMovements = sort ? [...account.movements].sort((a, b) => a - b) : account.movements;
+    const sortedMovements = sort === 'default' ? account.movements : [...account.movements].sort((a, b) => sort === 'desc' ? a - b : b - a);
 
     sortedMovements.forEach((m, i) => {
         const type = m > 0 ? 'deposit' : 'withdrawal';
@@ -420,7 +421,25 @@ btnClose.addEventListener('click', function (e) {
 
 btnSort.addEventListener('click', function (e) {
     e.preventDefault();
-
-    displayMovements(currentAccount, !sorted);
-    sorted = !sorted;
+    
+    switch (sorted) {
+        case 'desc':
+            btnSort.children[1].classList.remove('fa-plus');
+            btnSort.children[1].classList.add('fa-minus');
+            sorted = 'asc';
+            break;
+        case 'asc':
+            btnSort.children[1].classList.remove('fa-minus');
+            btnSort.children[1].classList.add('fa-sort');
+            sorted = 'default';
+            break;
+        case 'default':
+            btnSort.children[1].classList.remove('fa-sort');
+            btnSort.children[1].classList.add('fa-plus');
+            sorted = 'desc';
+            break;
+        default:
+            throw new Error('There is an error in the movements sorting');
+    }
+    displayMovements(currentAccount, sorted);
 });
